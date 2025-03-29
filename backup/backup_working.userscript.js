@@ -422,12 +422,6 @@ function main() {
 
     function parser(e) {
         if(e.data.includes('bestmove')) {
-            // Clear the timeout since we got a response
-            if (engine.engineTimeout) {
-                clearTimeout(engine.engineTimeout);
-                engine.engineTimeout = null;
-            }
-            
             const bestMove = e.data.split(' ')[1];
 
             // Sometimes make a "human-like" suboptimal move
@@ -608,26 +602,6 @@ function main() {
         var positionType = analyzePositionType(fen);
         var effectiveDepth = adjustDepthByPosition(depth, positionType);
 
-        // Clear any existing timeout
-        if (engine.engineTimeout) {
-            clearTimeout(engine.engineTimeout);
-        }
-
-        // Set a timeout to prevent infinite calculation
-        const timeoutDuration = 30000 + (depth * 2000); // Base 30s + 2s per depth level
-        engine.engineTimeout = setTimeout(() => {
-            console.log(`Engine calculation timed out at depth ${effectiveDepth}. Restarting engine.`);
-            isThinking = false;
-            myFunctions.reloadChessEngine();
-            
-            // Try again with a lower depth after a short delay
-            setTimeout(() => {
-                if (myVars.autoRun) {
-                    myFunctions.runChessEngine(Math.max(8, depth - 4));
-                }
-            }, 1000);
-        }, timeoutDuration);
-
         engine.engine.postMessage(`position fen ${fen}`);
         console.log('updated: ' + `position fen ${fen}`);
         isThinking = true;
@@ -788,7 +762,7 @@ function main() {
                             <path fill="currentColor" d="M19,22H5V20H19V22M17,10C15.58,10 14.26,10.77 13.55,12H13V7H16V5H13V2H11V5H8V7H11V12H10.45C9.74,10.77 8.42,10 7,10A5,5 0 0,0 2,15A5,5 0 0,0 7,20H17A5,5 0 0,0 22,15A5,5 0 0,0 17,10M7,18A3,3 0 0,1 4,15A3,3 0 0,1 7,12A3,3 0 0,1 10,15A3,3 0 0,1 7,18M17,18A3,3 0 0,1 14,15A3,3 0 0,1 17,12A3,3 0 0,1 20,15A3,3 0 0,1 17,18Z" />
                         </svg>
                     </div>
-                    <h3 class="bot-title">Panel Pro By @akashiverse</h3>
+                    <h3 class="bot-title">Panel Pro By @akashdeep</h3>
                     <div id="thinking-indicator" class="thinking-indicator">
                         <span class="dot dot1"></span>
                         <span class="dot dot2"></span>
@@ -813,7 +787,7 @@ function main() {
                                     <label for="depthSlider">Depth/ELO:</label>
                                     <div class="slider-controls">
                                         <button class="depth-button" id="decreaseDepth">-</button>
-                                        <input type="range" id="depthSlider" min="1" max="26" value="11" class="depth-slider">
+                                        <input type="range" id="depthSlider" min="1" max="21" value="11" class="depth-slider">
                                         <button class="depth-button" id="increaseDepth">+</button>
                                     </div>
                                     <span id="depthValue">11</span>
@@ -1833,20 +1807,9 @@ function main() {
     }
 
     function getAdjustedDepth() {
-        // Vary search depth by ±2 to mimic human inconsistency
-        const variation = Math.floor(Math.random() * 5) - 2; // Random number between -2 and +2
-        
-        // Cap maximum depth based on position complexity to prevent hanging
-        const fen = board.game.getFEN();
-        const complexity = calculatePositionComplexity(fen);
-        
-        // Limit maximum depth for complex positions
-        let maxDepth = 18;
-        if (complexity > 0.8) maxDepth = 16;
-        else if (complexity > 0.6) maxDepth = 18;
-        
-        // Apply the adjusted depth with limits
-        return Math.max(4, Math.min(maxDepth, lastValue + variation));
+        // Vary search depth by ±5 to mimic human inconsistency
+        const variation = Math.floor(Math.random() * 11) - 5; // Random number between -5 and +5
+        return Math.max(1, Math.min(20, lastValue + variation)); // Keep within valid range 1-26
     }
 
     async function getVersion(){
@@ -1864,7 +1827,6 @@ function main() {
     //Removed due to script being reported. I tried to make it so people can know when bug fixes come out. Clearly people don't like that.
     //getVersion();
 
-    // Add this to the waitForChessBoard interval function
     const waitForChessBoard = setInterval(() => {
         if(loaded) {
             board = $('chess-board')[0] || $('wc-chess-board')[0];
@@ -1875,16 +1837,6 @@ function main() {
             myVars.delay = Math.random() * (maxDel - minDel) + minDel;
             myVars.isThinking = isThinking;
             myFunctions.spinner();
-            
-            // Check if it's our turn and initialize autoRun properly
-            const isMyTurn = board.game.getTurn() == board.game.getPlayingAs();
-            if (isMyTurn !== myTurn) {
-                myTurn = isMyTurn;
-                // Reset canGo when turn changes to ensure autoRun works
-                if (myTurn && myVars.autoRun && !isThinking) {
-                    canGo = true;
-                }
-            }
             if(board.game.getTurn() == board.game.getPlayingAs()){myTurn = true;} else {myTurn = false;}
             $('#depthText')[0].innerHTML = "Current Depth: <strong>"+lastValue+"</strong>";
         } else {

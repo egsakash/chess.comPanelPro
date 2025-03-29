@@ -1,0 +1,14 @@
+{
+  "name": "chess-assist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "esbuild main.js --bundle --format=iife --outfile=chessnew.userscript.js --banner:js=\"$(cat header.js)\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.3"
+}

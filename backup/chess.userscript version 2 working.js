@@ -5,9 +5,9 @@
 //Chess.com Enhanced Experience © 2024 by Akashdeep
 //
 // ==UserScript
-// @name         Chess.com Enhanced Experience
+// @name         Chess.com UltraX bot with Panel
 // @namespace    Akashdeep
-// @version      1.0.0.2
+// @version      1.0.0.5
 // @description  Enhances your Chess.com experience with move suggestions, UI enhancements, and customizable features.  Credits to GoodtimeswithEno for the initial move highlighting and basic chess engine implementation.
 // @author       Akashdeep
 // @license      Chess.com Enhanced Experience © 2024 by Akashdeep, © All Rights Reserved
@@ -33,7 +33,7 @@
 
 //Don't touch anything below unless you know what your doing!
 
-const currentVersion = '1.0.0.2'; // Sets the current version
+const currentVersion = '1.0.0.5'; // Sets the current version
 
 function main() {
 
@@ -423,18 +423,45 @@ function main() {
     function parser(e) {
         if(e.data.includes('bestmove')) {
             const bestMove = e.data.split(' ')[1];
-
-            // Sometimes make a "human-like" suboptimal move
-            const shouldMakeHumanMove = Math.random() < getBlunderProbability();
-            if (shouldMakeHumanMove && e.data.includes('ponder')) {
-                // Try to extract alternative moves or generate a plausible suboptimal move
-                const actualMove = generateHumanLikeMove(bestMove, e.data);
-                console.log(`Using human-like move ${actualMove} instead of best move ${bestMove}`);
-                myFunctions.color(actualMove);
-            } else {
-                console.log(bestMove);
-                myFunctions.color(bestMove);
+            
+            // Extract multiple moves from engine analysis if available
+            let alternativeMoves = [bestMove];
+            try {
+                if (e.data.includes('pv')) {
+                    // Try to extract alternative moves from multiPV or previous info lines
+                    const lines = e.data.split('\n')
+                        .filter(line => line.includes(' pv '))
+                        .map(line => {
+                            const pvIndex = line.indexOf(' pv ');
+                            return line.substring(pvIndex + 4).split(' ')[0];
+                        });
+                    
+                    if (lines.length > 1) {
+                        alternativeMoves = lines;
+                    }
+                }
+            } catch (error) {
+                console.log("Error extracting alternative moves", error);
             }
+            
+            // Decide whether to use best move or an alternative
+            let moveToPlay = bestMove;
+            const currentDepth = lastValue;
+            
+            // For higher depths, sometimes choose alternative moves
+            if (currentDepth >= 15 && alternativeMoves.length > 1 && Math.random() < 0.35) {
+                // Select a random move from top 5 (or fewer if not available)
+                const maxIndex = Math.min(5, alternativeMoves.length);
+                const randomIndex = Math.floor(Math.random() * (maxIndex - 1)) + 1; // Skip index 0 (best move)
+                moveToPlay = alternativeMoves[randomIndex] || bestMove;
+                console.log(`Using alternative move ${moveToPlay} instead of best move ${bestMove}`);
+            } else if (Math.random() < getBlunderProbability()) {
+                // Sometimes make a "human-like" suboptimal move
+                moveToPlay = generateHumanLikeMove(bestMove, e.data);
+                console.log(`Using human-like move ${moveToPlay} instead of best move ${bestMove}`);
+            }
+            
+            myFunctions.color(moveToPlay);
             isThinking = false;
         }
     }
@@ -481,20 +508,48 @@ function main() {
     }
 
     function estimateTimeRemaining() {
-        // Try to get the clock time if available
-        try {
-            const clockEl = document.querySelector('.clock-component');
-            if (clockEl) {
-                const timeText = clockEl.textContent;
-                const minutes = parseInt(timeText.split(':')[0]);
-                const seconds = parseInt(timeText.split(':')[1]);
-                return minutes * 60 + seconds;
+    // Try to get the clock time if available
+    try {
+        const clockEl = document.querySelector('.clock-component');
+        if (clockEl) {
+            const timeText = clockEl.textContent;
+            if (timeText.includes(':')) {
+                const parts = timeText.split(':');
+                if (parts.length === 2) {
+                    const minutes = parseInt(parts[0]);
+                    const seconds = parseInt(parts[1]);
+                    return minutes * 60 + seconds;
+                }
+            } else {
+                // Handle single number format (e.g., just seconds)
+                return parseInt(timeText);
             }
-        } catch (e) {}
-
-        // Default value if clock can't be read
-        return 180;
+        }
+        
+        // Try alternative clock selectors
+        const altClockEl = document.querySelector('.clock-time-monospace') || 
+                          document.querySelector('.clock-time') ||
+                          document.querySelector('[data-cy="clock-time"]');
+        if (altClockEl) {
+            const timeText = altClockEl.textContent;
+            if (timeText.includes(':')) {
+                const parts = timeText.split(':');
+                if (parts.length === 2) {
+                    const minutes = parseInt(parts[0]);
+                    const seconds = parseInt(parts[1]);
+                    return minutes * 60 + seconds;
+                }
+            } else {
+                return parseInt(timeText);
+            }
+        }
+    } catch (e) {
+        console.log("Error getting time remaining:", e);
     }
+
+    // Default value if clock can't be read
+    return 180; // 3 minutes as default
+}
 
     function estimatePositionComplexity() {
         // Calculate a complexity score between 0-1
@@ -509,13 +564,13 @@ function main() {
             try {
                 // Extract multiple lines from engine analysis
                 const lines = engineData.split('\n')
-                    .filter(line => line.includes(' pv '))
-                    .map(line => {
-                        const pvIndex = line.indexOf(' pv ');
-                        return line.substring(pvIndex + 4).split(' ')[0];
-                    });
-
-                if (lines.length > 1) {
+                        .filter(line => line.includes(' pv '))
+                        .map(line => {
+                            const pvIndex = line.indexOf(' pv ');
+                            return line.substring(pvIndex + 4).split(' ')[0];
+                        });
+                    
+                    if (lines.length > 1) {
                     // Weight moves by their quality (prefer better moves, but sometimes choose worse ones)
                     const moveIndex = Math.floor(Math.pow(Math.random(), 2.5) * Math.min(lines.length, 4));
                     return lines[moveIndex] || bestMove;
@@ -571,7 +626,7 @@ function main() {
         console.log(`Reloading the chess engine!`);
 
         engine.engine.terminate();
-        isThinking = false;
+            isThinking = false;
         myFunctions.loadChessEngine();
     }
 
@@ -596,18 +651,33 @@ function main() {
     }
 
     var lastValue = 11;
-    myFunctions.runChessEngine = function(depth) {
-        // Add variable depth based on position type
-        var fen = board.game.getFEN();
-        var positionType = analyzePositionType(fen);
-        var effectiveDepth = adjustDepthByPosition(depth, positionType);
 
-        engine.engine.postMessage(`position fen ${fen}`);
-        console.log('updated: ' + `position fen ${fen}`);
-        isThinking = true;
-        engine.engine.postMessage(`go depth ${effectiveDepth}`);
-        lastValue = depth; // Keep original depth for UI display
+
+    myFunctions.runChessEngine = function(depth) {
+    // Get time-adjusted depth
+    var adjustedDepth = getAdjustedDepth();
+    
+    // Get position type
+    var fen = board.game.getFEN();
+    var positionType = analyzePositionType(fen);
+    
+    // Log the depth adjustment
+    console.log(`Original depth: ${depth}, Adjusted for time/position: ${adjustedDepth}`);
+    
+    engine.engine.postMessage(`position fen ${fen}`);
+    console.log('updated: ' + `position fen ${fen}`);
+    isThinking = true;
+    
+    // Use multipv for alternative moves when depth is high
+    if (depth >= 15) {
+        engine.engine.postMessage(`setoption name MultiPV value 5`);
+    } else {
+        engine.engine.postMessage(`setoption name MultiPV value 1`);
     }
+    
+    engine.engine.postMessage(`go depth ${adjustedDepth}`);
+    lastValue = depth; // Keep original depth for UI display
+}
 
     function analyzePositionType(fen) {
         // Determine position type: opening, middlegame, endgame, tactical
@@ -787,7 +857,7 @@ function main() {
                                     <label for="depthSlider">Depth/ELO:</label>
                                     <div class="slider-controls">
                                         <button class="depth-button" id="decreaseDepth">-</button>
-                                        <input type="range" id="depthSlider" min="1" max="26" value="11" class="depth-slider">
+                                        <input type="range" id="depthSlider" min="1" max="21" value="11" class="depth-slider">
                                         <button class="depth-button" id="increaseDepth">+</button>
                                     </div>
                                     <span id="depthValue">11</span>
@@ -1807,9 +1877,79 @@ function main() {
     }
 
     function getAdjustedDepth() {
-        // Vary search depth by ±5 to mimic human inconsistency
-        const variation = Math.floor(Math.random() * 11) - 5; // Random number between -5 and +5
-        return Math.max(1, Math.min(22, lastValue + variation)); // Keep within valid range 1-26
+        // Get time remaining and adjust depth accordingly
+        const timeRemaining = estimateTimeRemaining();
+        const gamePhase = estimateGamePhase();
+        const positionType = analyzePositionType(board.game.getFEN());
+        const isPositionCritical = isPositionCriticalNow();
+        
+        // Base depth from slider
+        let baseDepth = lastValue;
+        
+        // Time-based adjustments
+        if (timeRemaining < 30) {
+            // Below 30 seconds - use very low depth
+            return Math.floor(Math.random() * 3) + 1; // 1-3
+        } else if (timeRemaining < 60) {
+            // Below 1 minute - use low depth
+            return Math.floor(Math.random() * 3) + 5; // 5-7
+        }
+        
+        // Game phase adjustments
+        if (gamePhase < 10) {
+            // Opening phase - use lower depth
+            baseDepth = Math.min(baseDepth, 10);
+        } else if (gamePhase > 30) {
+            // Endgame - can use higher depth as positions are simpler
+            baseDepth = Math.min(baseDepth + 2, 20);
+        }
+        
+        // Occasionally use very low depth to prevent detection
+        if (!isPositionCritical && Math.random() < 0.15) {
+            return Math.floor(Math.random() * 2) + 2; // 2-3
+        }
+        
+        // Add some randomness to the depth
+        const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
+        return Math.max(1, Math.min(20, baseDepth + variation));
+    }
+
+    function isPositionCriticalNow() {
+        // Determine if the current position is critical
+        // This is a simplified implementation
+        try {
+            // Check if kings are under attack
+            const inCheck = board.game.inCheck();
+            
+            // Check material balance (simplified)
+            const fen = board.game.getFEN();
+            const whiteMaterial = countMaterial(fen, true);
+            const blackMaterial = countMaterial(fen, false);
+            const materialDifference = Math.abs(whiteMaterial - blackMaterial);
+            
+            // Position is critical if in check or material is close
+            return inCheck || materialDifference < 2;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function countMaterial(fen, isWhite) {
+        // Simple material counting function
+        const position = fen.split(' ')[0];
+        let material = 0;
+        
+        const pieces = isWhite ? 'PNBRQK' : 'pnbrqk';
+        const values = { 'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 0, 
+                         'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
+        
+        for (let char of position) {
+            if (pieces.includes(char)) {
+                material += values[char];
+            }
+        }
+        
+        return material;
     }
 
     async function getVersion(){
