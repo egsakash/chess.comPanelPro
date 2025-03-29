@@ -449,42 +449,52 @@ export function setupUtilities(myVars) {
     };
     
     myFunctions.saveSettings = function() {
-        GM_setValue('autoRun', myVars.autoRun);
-        GM_setValue('autoMove', myVars.autoMove);
-        GM_setValue('timeDelayMin', $('#timeDelayMin').val());
-        GM_setValue('timeDelayMax', $('#timeDelayMax').val());
-        GM_setValue('depthValue', myVars.lastValue);
-        GM_setValue('highlightColor', myVars.highlightColor);
-        GM_setValue('playStyle', myVars.playStyle);
-        GM_setValue('blunderRate', myVars.blunderRate);
-        GM_setValue('adaptToRating', myVars.adaptToRating);
-        GM_setValue('useOpeningBook', myVars.useOpeningBook);
-        GM_setValue('preferredOpenings', myVars.preferredOpenings);
-        GM_setValue('enableHotkeys', myVars.enableHotkeys);
-        GM_setValue('randomizeTiming', myVars.randomizeTiming);
-        GM_setValue('mouseMovementRealism', myVars.mouseMovementRealism);
+        try {
+            GM_setValue('autoRun', myVars.autoRun);
+            GM_setValue('autoMove', myVars.autoMove);
+            GM_setValue('timeDelayMin', $('#timeDelayMin').val());
+            GM_setValue('timeDelayMax', $('#timeDelayMax').val());
+            GM_setValue('depthValue', myVars.lastValue);
+            GM_setValue('highlightColor', myVars.highlightColor);
+            GM_setValue('playStyle', myVars.playStyle);
+            GM_setValue('blunderRate', myVars.blunderRate);
+            GM_setValue('adaptToRating', myVars.adaptToRating);
+            GM_setValue('useOpeningBook', myVars.useOpeningBook);
+            GM_setValue('preferredOpenings', myVars.preferredOpenings);
+            GM_setValue('enableHotkeys', myVars.enableHotkeys);
+            GM_setValue('randomizeTiming', myVars.randomizeTiming);
+            GM_setValue('mouseMovementRealism', myVars.mouseMovementRealism);
+            
+            console.log("Settings saved successfully");
+        } catch (error) {
+            console.error("Error saving settings:", error);
+        }
     };
     
     myFunctions.loadSettings = function() {
-        myVars.autoRun = GM_getValue('autoRun', false);
-        myVars.autoMove = GM_getValue('autoMove', false);
-        $('#timeDelayMin').val(GM_getValue('timeDelayMin', 0.1));
-        $('#timeDelayMax').val(GM_getValue('timeDelayMax', 1));
-        myVars.lastValue = GM_getValue('depthValue', 11);
-        myVars.highlightColor = GM_getValue('highlightColor', 'rgb(235, 97, 80)');
-        myVars.playStyle = GM_getValue('playStyle', {
-            aggressive: Math.random() * 0.5 + 0.3,
-            defensive: Math.random() * 0.5 + 0.3,
-            tactical: Math.random() * 0.6 + 0.2,
-            positional: Math.random() * 0.6 + 0.2
-        });
-        myVars.blunderRate = GM_getValue('blunderRate', 0.05);
-        myVars.adaptToRating = GM_getValue('adaptToRating', true);
-        myVars.useOpeningBook = GM_getValue('useOpeningBook', true);
-        myVars.preferredOpenings = GM_getValue('preferredOpenings', ["e4", "d4", "c4", "Nf3"]);
-        myVars.enableHotkeys = GM_getValue('enableHotkeys', true);
-        myVars.randomizeTiming = GM_getValue('randomizeTiming', true);
-        myVars.mouseMovementRealism = GM_getValue('mouseMovementRealism', 0.7);
+        try {
+            myVars.autoRun = GM_getValue('autoRun', false);
+            myVars.autoMove = GM_getValue('autoMove', false);
+            myVars.lastValue = GM_getValue('depthValue', 11);
+            myVars.highlightColor = GM_getValue('highlightColor', 'rgb(235, 97, 80)');
+            myVars.blunderRate = GM_getValue('blunderRate', 0.05);
+            myVars.adaptToRating = GM_getValue('adaptToRating', true);
+            myVars.useOpeningBook = GM_getValue('useOpeningBook', true);
+            myVars.preferredOpenings = GM_getValue('preferredOpenings', ["e4", "d4", "c4", "Nf3"]);
+            myVars.enableHotkeys = GM_getValue('enableHotkeys', true);
+            myVars.randomizeTiming = GM_getValue('randomizeTiming', true);
+            myVars.mouseMovementRealism = GM_getValue('mouseMovementRealism', 0.7);
+            
+            // Load play style if it exists
+            const savedPlayStyle = GM_getValue('playStyle', null);
+            if (savedPlayStyle) {
+                myVars.playStyle = savedPlayStyle;
+            }
+            
+            console.log("Settings loaded successfully");
+        } catch (error) {
+            console.error("Error loading settings:", error);
+        }
     };
     
     return myFunctions;

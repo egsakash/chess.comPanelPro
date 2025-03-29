@@ -1,11 +1,11 @@
 {
   "name": "chess-assist",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.5",
+  "description": "Chess.com Enhanced Experience © 2024 by Akashdeep",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild main.js --bundle --format=iife --outfile=chessnew.userscript.js --banner:js=\"$(cat header.js)\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild main.js --bundle --format=iife --outfile=build/chessnew.userscript.js --banner:js=\"$(cat header.js)\"",
+    "clear": "rm -rf build/chessnew.userscript.js"
   },
   "keywords": [],
   "author": "",

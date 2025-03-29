@@ -16,6 +16,10 @@ function main() {
     // Initialize all components
     const myVars = initializeVariables();
     const myFunctions = setupUtilities(myVars);
+    
+    // Load settings immediately after initializing utilities
+    myFunctions.loadSettings();
+    
     const engine = setupEngine(myVars, myFunctions);
     
     document.engine = engine;
@@ -27,6 +31,8 @@ function main() {
     
     // Setup event handlers
     setupEventHandlers(myVars, myFunctions, engine);
+    
+    console.log("Chess.com UltraX bot initialized with version:", currentVersion);
 }
 
 // Initialize on window load
