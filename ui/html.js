@@ -156,7 +156,7 @@ export const mainTemplate = `
             Reload Engine
         </button>
 
-        <button type="button" id="isBut" class="action-button secondary-button" onclick="window.confirm('Can I take you to the issues page?') ? document.location = 'https://github.com/Auzgame/userscripts/issues' : console.log('canceled')">
+        <button type="button" id="isBut" class="action-button secondary-button" onclick="window.confirm('Can I take you to the issues page?') ? document.location = 'https://github.com/egsakash/chess.comPanelPro/issues' : console.log('canceled')">
             <svg viewBox="0 0 24 24" width="16" height="16">
                 <path fill="currentColor" d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
             </svg>
