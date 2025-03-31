@@ -314,31 +314,20 @@ export function setupUtilities(myVars) {
         let baseDepth = myVars.lastValue;
         
         // Time-based adjustments
-        if (timeRemaining < 30) {
-            // Below 30 seconds - use very low depth
-            return Math.floor(Math.random() * 3) + 1; // 1-3
+        if (timeRemaining < 10) {
+            return Math.floor(Math.random() * 3) + 1;
+        } else if (timeRemaining < 30) {
+            return Math.floor(Math.random() * 4) + 4;
         } else if (timeRemaining < 60) {
-            // Below 1 minute - use low depth
-            return Math.floor(Math.random() * 3) + 5; // 5-7
+            return Math.floor(Math.random() * 7) + 6;
+        } else if (timeRemaining < 120) {
+            return Math.floor(Math.random() * 7) + 9;
+        } else {
+            if (!isPositionCritical && Math.random() < 0.07) {
+                return Math.floor(Math.random() * 4) + 2;
+            }
+            return Math.floor(Math.random() * 9) + 11;
         }
-        
-        // Game phase adjustments
-        if (gamePhase < 10) {
-            // Opening phase - use lower depth
-            baseDepth = Math.min(baseDepth, 10);
-        } else if (gamePhase > 30) {
-            // Endgame - can use higher depth as positions are simpler
-            baseDepth = Math.min(baseDepth + 2, 20);
-        }
-        
-        // Occasionally use very low depth to prevent detection
-        if (!isPositionCritical && Math.random() < 0.15) {
-            return Math.floor(Math.random() * 2) + 2; // 2-3
-        }
-        
-        // Add some randomness to the depth
-        const variation = Math.floor(Math.random() * 5) - 2; // -2 to +2
-        return Math.max(1, Math.min(20, baseDepth + variation));
     };
     
     myFunctions.analyzePositionType = function(fen) {
@@ -400,8 +389,12 @@ export function setupUtilities(myVars) {
     
     myFunctions.estimateTimeRemaining = function() {
         // Try to get the clock time if available
+        let remainingTime = 600; // Default value if clock can't be read
+
         try {
-            const clockEl = document.querySelector('.clock-component');
+            // Target the player's clock specifically
+            const clockEl = document.querySelector('.clock-component.clock-bottom');
+            
             if (clockEl) {
                 const timeText = clockEl.textContent;
                 if (timeText.includes(':')) {
@@ -409,37 +402,32 @@ export function setupUtilities(myVars) {
                     if (parts.length === 2) {
                         const minutes = parseInt(parts[0]);
                         const seconds = parseInt(parts[1]);
-                        return minutes * 60 + seconds;
+                        
+                        // Check if parsing was successful
+                        if (!isNaN(minutes) && !isNaN(seconds)) {
+                            remainingTime = minutes * 60 + seconds;
+                        } else {
+                            console.log("Error parsing time:", timeText);
+                        }
                     }
                 } else {
                     // Handle single number format (e.g., just seconds)
-                    return parseInt(timeText);
-                }
-            }
-            
-            // Try alternative clock selectors
-            const altClockEl = document.querySelector('.clock-time-monospace') || 
-                              document.querySelector('.clock-time') ||
-                              document.querySelector('[data-cy="clock-time"]');
-            if (altClockEl) {
-                const timeText = altClockEl.textContent;
-                if (timeText.includes(':')) {
-                    const parts = timeText.split(':');
-                    if (parts.length === 2) {
-                        const minutes = parseInt(parts[0]);
-                        const seconds = parseInt(parts[1]);
-                        return minutes * 60 + seconds;
+                    const seconds = parseInt(timeText);
+                    if (!isNaN(seconds)) {
+                        remainingTime = seconds;
+                    } else {
+                        console.log("Error parsing time:", timeText);
                     }
-                } else {
-                    return parseInt(timeText);
                 }
+            } else {
+                console.log("Clock element not found with selector '.clock-component.clock-bottom'");
             }
         } catch (e) {
             console.log("Error getting time remaining:", e);
         }
 
-        // Default value if clock can't be read
-        return 180; // 3 minutes as default
+        console.log("Remaining time:", remainingTime);
+        return remainingTime;
     };
     
     myFunctions.estimatePositionComplexity = function() {

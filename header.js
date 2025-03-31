@@ -22,7 +22,6 @@
 // @grant       GM_getResourceText
 // @grant       GM_registerMenuCommand
 // @resource    stockfish.js        https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js
-// @require     https://greasyfork.org/scripts/445697/code/index.js
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @run-at      document-start
 // @liscense MIT

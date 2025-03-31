@@ -22,7 +22,6 @@
 // @grant       GM_getResourceText
 // @grant       GM_registerMenuCommand
 // @resource    stockfish.js        https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js
-// @require     https://greasyfork.org/scripts/445697/code/index.js
 // @require     https://code.jquery.com/jquery-3.6.0.min.js
 // @run-at      document-start
 // @liscense MIT
@@ -335,7 +334,7 @@ const currentVersion = '1.0.0.5'; // Sets the current version
             Reload Engine
         </button>
 
-        <button type="button" id="isBut" class="action-button secondary-button" onclick="window.confirm('Can I take you to the issues page?') ? document.location = 'https://github.com/Auzgame/userscripts/issues' : console.log('canceled')">
+        <button type="button" id="isBut" class="action-button secondary-button" onclick="window.confirm('Can I take you to the issues page?') ? document.location = 'https://github.com/egsakash/chess.comPanelPro/issues' : console.log('canceled')">
             <svg viewBox="0 0 24 24" width="16" height="16">
                 <path fill="currentColor" d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
             </svg>
@@ -1529,21 +1528,20 @@ const currentVersion = '1.0.0.5'; // Sets the current version
       const positionType = myFunctions.analyzePositionType(window.board.game.getFEN());
       const isPositionCritical = myFunctions.isPositionCriticalNow();
       let baseDepth = myVars.lastValue;
-      if (timeRemaining < 30) {
-        return Math.floor(Math.random() * 3) + 1;
+      if (timeRemaining < 10) {
+        return Math.floor(Math.random() * 4) + 2;
+      } else if (timeRemaining < 30) {
+        return Math.floor(Math.random() * 4) + 4;
       } else if (timeRemaining < 60) {
-        return Math.floor(Math.random() * 3) + 5;
+        return Math.floor(Math.random() * 7) + 6;
+      } else if (timeRemaining < 120) {
+        return Math.floor(Math.random() * 7) + 9;
+      } else {
+        if (!isPositionCritical && Math.random() < 0.07) {
+          return Math.floor(Math.random() * 4) + 2;
+        }
+        return Math.floor(Math.random() * 9) + 11;
       }
-      if (gamePhase < 10) {
-        baseDepth = Math.min(baseDepth, 10);
-      } else if (gamePhase > 30) {
-        baseDepth = Math.min(baseDepth + 2, 20);
-      }
-      if (!isPositionCritical && Math.random() < 0.15) {
-        return Math.floor(Math.random() * 2) + 2;
-      }
-      const variation = Math.floor(Math.random() * 5) - 2;
-      return Math.max(1, Math.min(20, baseDepth + variation));
     };
     myFunctions.analyzePositionType = function(fen) {
       const piecesCount = fen.split(" ")[0].match(/[pnbrqkPNBRQK]/g).length;
@@ -1597,8 +1595,9 @@ const currentVersion = '1.0.0.5'; // Sets the current version
       }
     };
     myFunctions.estimateTimeRemaining = function() {
+      let remainingTime = 600;
       try {
-        const clockEl = document.querySelector(".clock-component");
+        const clockEl = document.querySelector(".clock-component.clock-bottom");
         if (clockEl) {
           const timeText = clockEl.textContent;
           if (timeText.includes(":")) {
@@ -1606,30 +1605,28 @@ const currentVersion = '1.0.0.5'; // Sets the current version
             if (parts.length === 2) {
               const minutes = parseInt(parts[0]);
               const seconds = parseInt(parts[1]);
-              return minutes * 60 + seconds;
+              if (!isNaN(minutes) && !isNaN(seconds)) {
+                remainingTime = minutes * 60 + seconds;
+              } else {
+                console.log("Error parsing time:", timeText);
+              }
             }
           } else {
-            return parseInt(timeText);
-          }
-        }
-        const altClockEl = document.querySelector(".clock-time-monospace") || document.querySelector(".clock-time") || document.querySelector('[data-cy="clock-time"]');
-        if (altClockEl) {
-          const timeText = altClockEl.textContent;
-          if (timeText.includes(":")) {
-            const parts = timeText.split(":");
-            if (parts.length === 2) {
-              const minutes = parseInt(parts[0]);
-              const seconds = parseInt(parts[1]);
-              return minutes * 60 + seconds;
+            const seconds = parseInt(timeText);
+            if (!isNaN(seconds)) {
+              remainingTime = seconds;
+            } else {
+              console.log("Error parsing time:", timeText);
             }
-          } else {
-            return parseInt(timeText);
           }
+        } else {
+          console.log("Clock element not found with selector '.clock-component.clock-bottom'");
         }
       } catch (e) {
         console.log("Error getting time remaining:", e);
       }
-      return 180;
+      console.log("Remaining time:", remainingTime);
+      return remainingTime;
     };
     myFunctions.estimatePositionComplexity = function() {
       return Math.random() * 0.8 + 0.2;
