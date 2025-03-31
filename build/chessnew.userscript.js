@@ -30,10 +30,10 @@
 // @updateURL
 // ==/UserScript==
 
-const currentVersion = '1.0.0.5'; // Sets the current version
+const currentVersion = '1.0.1.1'; // Sets the current version
 (() => {
   // config.js
-  var currentVersion = "1.0.0.5";
+  var currentVersion = "1.0.1.1";
   function getRandomTacticalStrength() {
     const strengths = [
       "fork",
@@ -1529,7 +1529,7 @@ const currentVersion = '1.0.0.5'; // Sets the current version
       const isPositionCritical = myFunctions.isPositionCriticalNow();
       let baseDepth = myVars.lastValue;
       if (timeRemaining < 10) {
-        return Math.floor(Math.random() * 4) + 2;
+        return Math.floor(Math.random() * 3) + 1;
       } else if (timeRemaining < 30) {
         return Math.floor(Math.random() * 4) + 4;
       } else if (timeRemaining < 60) {

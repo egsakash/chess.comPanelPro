@@ -1,5 +1,5 @@
 // Configuration constants
-export const currentVersion = '1.0.0.5';
+export const currentVersion = '1.0.1.1';
 
 export function getRandomTacticalStrength() {
     const strengths = [

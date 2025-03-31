@@ -7,7 +7,7 @@
 // ==UserScript
 // @name         Chess.com UltraX bot with Panel
 // @namespace    Akashdeep
-// @version      1.0.0.5
+// @version      1.0.1.1
 // @description  Enhances your Chess.com experience with move suggestions, UI enhancements, and customizable features.  Credits to GoodtimeswithEno for the initial move highlighting and basic chess engine implementation.
 // @author       Akashdeep
 // @license      Chess.com Enhanced Experience © 2024 by Akashdeep, © All Rights Reserved
@@ -29,5 +29,3 @@
 // @downloadURL
 // @updateURL
 // ==/UserScript==
-
-const currentVersion = '1.0.0.5'; // Sets the current version
